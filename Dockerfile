@@ -16,12 +16,12 @@ WORKDIR /app
 
 # Installation des dépendances système exactement comme demandé
 RUN apt-get update
-RUN apt-get install git pciutils build-essential cmake curl libcurl4-openssl-dev -y
+RUN apt-get install git pciutils build-essential cmake curl libcurl4-openssl-dev libssl-dev -y
 
 # Clone et compilation de llama.cpp
 RUN git clone https://github.com/ggml-org/llama.cpp
 RUN cmake llama.cpp -B llama.cpp/build \
-    -DBUILD_SHARED_LIBS=OFF -DGGML_CUDA=ON -DLLAMA_CURL=ON
+    -DBUILD_SHARED_LIBS=OFF -DGGML_CUDA=ON -DLLAMA_CURL=ON -DLLAMA_OPENSSL=ON
 RUN cmake --build llama.cpp/build --config Release -j --clean-first
 RUN cp llama.cpp/build/bin/llama-* llama.cpp
 
@@ -32,3 +32,4 @@ RUN chmod +x /start.sh
 
 # Commande par défaut
 CMD ["/start.sh"]
+#CMD ["/bin/bash", "-c", "while true; do sleep 30; done"]
