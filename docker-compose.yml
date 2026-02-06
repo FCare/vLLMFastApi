@@ -25,7 +25,7 @@ services:
       - LOAD_IN_4BIT=${LOAD_IN_4BIT:-true}
       
       # Configuration GPU - OBLIGATOIRE pour le modèle
-      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_VISIBLE_DEVICES=1
       - CUDA_VISIBLE_DEVICES=0
       
       # Configuration sécurité
@@ -61,7 +61,7 @@ services:
       retries: 3
       start_period: 2m  # Temps pour le chargement du modèle
     
-    restart: unless-stopped
+    restart: always
     
     # Réseau
     networks:
