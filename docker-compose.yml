@@ -1,0 +1,182 @@
+# Docker Compose pour Qwen3-VL FastAPI Server
+services:
+  qwen-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: qwen-fastapi:latest
+    container_name: qwen-api-server
+    
+    # Configuration NVIDIA Runtime - OBLIGATOIRE pour GPU
+    runtime: nvidia
+    
+    # Variables d'environnement
+    environment:
+      # Configuration API
+      - API_PREFIX=${API_PREFIX:-}
+      - ROOT_PATH=${ROOT_PATH:-}
+      - HOST=0.0.0.0
+      - PORT=8000
+      - WORKERS=${WORKERS:-1}
+      
+      # Configuration modèle
+      - MODEL_NAME=${MODEL_NAME:-Qwen/Qwen2-VL-7B-Instruct}
+      - MAX_SEQ_LENGTH=${MAX_SEQ_LENGTH:-32768}
+      - LOAD_IN_4BIT=${LOAD_IN_4BIT:-true}
+      
+      # Configuration GPU - OBLIGATOIRE pour le modèle
+      - NVIDIA_VISIBLE_DEVICES=all
+      - CUDA_VISIBLE_DEVICES=0
+      
+      # Configuration sécurité
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+      - TRUSTED_HOSTS=${TRUSTED_HOSTS:-}
+      
+      # Hugging Face token (optionnel pour modèles privés)
+      - HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN:-}
+    
+    # Ports
+    ports:
+      - "${HOST_PORT:-8000}:8000"
+    
+    # Volumes pour persistance et cache
+    volumes:
+      - ./models:/app/models
+      - ./logs:/app/logs
+      - ./cache:/app/cache
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw  # Pour GUI si nécessaire
+    
+    # Configuration mémoire optimisée pour Qwen2-VL-2B
+    deploy:
+      resources:
+        limits:
+          memory: 16G  # Nécessaire pour le modèle 2.2B paramètres
+          cpus: '4'
+    
+    # Santé et redémarrage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000${API_PREFIX:-}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 2m  # Temps pour le chargement du modèle
+    
+    restart: unless-stopped
+    
+    # Réseau
+    networks:
+      - qwen-network
+    
+    # Logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # Reverse proxy optionnel avec Nginx
+  nginx:
+    image: nginx:alpine
+    container_name: qwen-nginx
+    ports:
+      - "${NGINX_PORT:-80}:80"
+      - "${NGINX_SSL_PORT:-443}:443"
+    
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro  # Certificats SSL
+      - ./logs/nginx:/var/log/nginx
+    
+    depends_on:
+      - qwen-api
+    
+    networks:
+      - qwen-network
+    
+    restart: unless-stopped
+    
+    # Activer seulement si nécessaire
+    profiles:
+      - nginx
+
+  # Monitoring avec Prometheus (optionnel)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: qwen-prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    
+    networks:
+      - qwen-network
+    
+    restart: unless-stopped
+    
+    # Activer seulement si nécessaire
+    profiles:
+      - monitoring
+
+  # Grafana pour visualisation (optionnel)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: qwen-grafana
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana:/etc/grafana/provisioning
+    
+    depends_on:
+      - prometheus
+    
+    networks:
+      - qwen-network
+    
+    restart: unless-stopped
+    
+    # Activer seulement si nécessaire
+    profiles:
+      - monitoring
+
+networks:
+  qwen-network:
+    driver: bridge
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+# Configuration pour différents environnements
+x-common-variables: &common-variables
+  API_PREFIX: ""
+  ROOT_PATH: ""
+  MODEL_NAME: "Qwen/Qwen2-VL-7B-Instruct"
+  MAX_SEQ_LENGTH: "32768"
+  LOAD_IN_4BIT: "true"
+  WORKERS: "1"
+
+# Override pour développement
+x-development: &development
+  <<: *common-variables
+  API_PREFIX: "/api/v1"
+  WORKERS: "1"
+
+# Override pour production
+x-production: &production
+  <<: *common-variables
+  WORKERS: "2"
+  TRUSTED_HOSTS: "yourdomain.com,api.yourdomain.com"
+  CORS_ORIGINS: "https://yourdomain.com,https://app.yourdomain.com"

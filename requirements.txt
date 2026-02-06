@@ -1,0 +1,29 @@
+# FastAPI et serveur
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+
+# vLLM pour Qwen3-VL avec support multimodal et OpenAI API
+vllm
+torch
+transformers
+
+# Vision et traitement d'images pour multimodal
+Pillow
+qwen-vl-utils
+
+# Utilitaires
+aiofiles
+python-multipart
+httpx
+sse-starlette
+
+# Monitoring et logs
+loguru
+prometheus-client
+psutil
+
+# Sécurité et validation
+python-jose[cryptography]
+passlib[bcrypt]

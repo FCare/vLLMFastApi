@@ -1,0 +1,83 @@
+# Ignore des fichiers inutiles pour Docker
+
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+*.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Tests
+tests/
+test_*.py
+*_test.py
+
+# Logs et caches
+logs/
+*.log
+.cache/
+.pytest_cache/
+
+# Données et modèles (à exclure pour réduire la taille)
+models/
+cache/
+data/
+
+# Configuration locale
+.env
+.env.local
+
+# Monitoring
+monitoring/
+
+# Nginx
+nginx/
+
+# Fichiers temporaires
+tmp/
+temp/
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
