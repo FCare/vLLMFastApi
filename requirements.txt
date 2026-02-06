@@ -6,7 +6,7 @@ pydantic-settings
 
 # vLLM pour Qwen3-VL avec support multimodal et OpenAI API
 vllm
-torch
+torch==2.7.0 --index-url https://download.pytorch.org/whl/cu128
 transformers
 
 # Vision et traitement d'images pour multimodal
