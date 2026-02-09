@@ -8,7 +8,8 @@
     --host 0.0.0.0 \
     --port 8000 \
     --temp 0.7 \
+    --parallel 2\
     --min-p 0.0 \
     --flash-attn on \
     --presence-penalty 1.5 \
-    --ctx-size 65536
+    --ctx-size 49152
