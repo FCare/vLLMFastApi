@@ -35,9 +35,9 @@ services:
       # Hugging Face token (optionnel pour modèles privés)
       - HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN:-}
     
-    # Ports
-    ports:
-      - "${HOST_PORT:-8000}:8000"
+    # Suppression du port mapping - accès via Traefik uniquement
+    # ports:
+    #   - "${HOST_PORT:-8000}:8000"
     
     # Volumes pour persistance et cache
     volumes:
@@ -62,9 +62,9 @@ services:
     
     restart: always
     
-    # Réseau
+    # Réseau Ansible
     networks:
-      - assistant-network
+      - ansible
     
     # Logs
     logging:
@@ -74,5 +74,6 @@ services:
         max-file: "3"
 
 networks:
-  assistant-network:
-    driver: bridge
+  ansible:
+    external: true
+    name: ansible
