@@ -1,16 +1,16 @@
-# Qwen3-VL avec llama.cpp
+# TheBrain - Qwen3-VL llama.cpp Server
 
-Serveur d'API compatible OpenAI utilisant llama.cpp avec le modèle Qwen3-VL quantifié GGUF.
+**TheBrain** - Named after the French film "Le Cerveau" (The Brain), this deployment provides an OpenAI-compatible API server powered by llama.cpp and the Qwen3-VL vision-language model.
 
-## 🚀 Fonctionnalités
+## 🚀 Features
 
-- ✅ **llama.cpp natif** - Performance optimisée avec CUDA
-- ✅ **Interface OpenAI Compatible** - Endpoints `/v1/chat/completions`, `/v1/models`
-- ✅ **Qwen3-VL GGUF** - Modèle vision-language quantifié Q4_K_XL (~5GB)
-- ✅ **Multi-Modal** - Support texte + images avec 49K context
-- ✅ **Streaming** - Réponses en temps réel
-- ✅ **GPU Accelerated** - Support CUDA complet
-- ✅ **Docker Ready** - Déploiement simplifié
+- ✅ **Native llama.cpp** - Optimized performance with CUDA acceleration
+- ✅ **OpenAI Compatible API** - Standard `/v1/chat/completions`, `/v1/models` endpoints
+- ✅ **Qwen3-VL GGUF** - Quantized vision-language model Q4_K_XL (~5GB)
+- ✅ **Multi-Modal** - Text + image support with 49K context window
+- ✅ **Streaming** - Real-time response streaming
+- ✅ **GPU Accelerated** - Full CUDA support
+- ✅ **Docker Ready** - Simplified deployment
 
 ## 🏗️ Architecture
 
@@ -30,52 +30,52 @@ Serveur d'API compatible OpenAI utilisant llama.cpp avec le modèle Qwen3-VL qua
 
 ## 📦 Installation
 
-### Prérequis
+### Prerequisites
 
-- **GPU NVIDIA** avec 6+ GB VRAM
+- **NVIDIA GPU** with 6+ GB VRAM
 - **Docker + NVIDIA Container Runtime**
-- **CUDA 12.8** ou compatible
+- **CUDA 12.8** or compatible
 
-### Démarrage avec Docker
+### Quick Start with Docker
 
 ```bash
-# Cloner le repository
+# Clone the repository
 git clone <repository-url>
-cd qwen-llama-cpp
+cd thebrain
 
-# Configuration (optionnel)
+# Configuration (optional)
 cp .env.example .env
-# Éditer .env si nécessaire
+# Edit .env if needed
 
-# Lancement
+# Launch
 docker-compose up -d
 
-# Vérification
+# Verify
 curl http://localhost:8000/health
 ```
 
-### Configuration GPU
+### GPU Configuration
 
 ```bash
-# Vérifier le support NVIDIA
+# Check NVIDIA support
 docker run --rm --runtime=nvidia nvidia/cuda:12.8-base nvidia-smi
 
-# Changer de GPU (dans .env)
+# Change GPU (in .env)
 echo "CUDA_VISIBLE_DEVICES=1" >> .env
 ```
 
 ## 🔧 Configuration
 
-### Variables d'Environnement
+### Environment Variables
 
-| Variable | Défaut | Description |
-|----------|--------|-------------|
-| `HOST_PORT` | `8000` | Port exposé sur l'hôte |
-| `CUDA_VISIBLE_DEVICES` | `0` | GPU à utiliser |
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `HOST_PORT` | `8000` | Host port mapping |
+| `CUDA_VISIBLE_DEVICES` | `0` | GPU to use |
 
-### Paramètres llama.cpp
+### llama.cpp Parameters
 
-Le serveur est configuré dans [`start.sh`](start.sh) avec :
+The server is configured in [`start.sh`](start.sh) with:
 
 ```bash
 ./llama.cpp/llama-server \
@@ -88,22 +88,22 @@ Le serveur est configuré dans [`start.sh`](start.sh) avec :
     --flash-attn on
 ```
 
-## 📚 Utilisation
+## 📚 Usage
 
-### Chat Completion Basique
+### Basic Chat Completion
 
 ```python
 import openai
 
 client = openai.OpenAI(
     base_url="http://localhost:8000/v1",
-    api_key="dummy-key"  # Non utilisé
+    api_key="dummy-key"  # Not used
 )
 
 response = client.chat.completions.create(
     model="unsloth/Qwen3-VL-8B-Instruct-GGUF",
     messages=[
-        {"role": "user", "content": "Bonjour! Comment allez-vous?"}
+        {"role": "user", "content": "Hello! How are you?"}
     ],
     max_tokens=1000,
     temperature=0.7
@@ -112,7 +112,7 @@ response = client.chat.completions.create(
 print(response.choices[0].message.content)
 ```
 
-### Chat avec Images
+### Chat with Images
 
 ```python
 response = client.chat.completions.create(
@@ -121,7 +121,7 @@ response = client.chat.completions.create(
         {
             "role": "user",
             "content": [
-                {"type": "text", "text": "Que voyez-vous dans cette image?"},
+                {"type": "text", "text": "What do you see in this image?"},
                 {"type": "image_url", "image_url": {"url": "https://example.com/image.jpg"}}
             ]
         }
@@ -134,7 +134,7 @@ response = client.chat.completions.create(
 ```python
 stream = client.chat.completions.create(
     model="unsloth/Qwen3-VL-8B-Instruct-GGUF",
-    messages=[{"role": "user", "content": "Racontez-moi une histoire"}],
+    messages=[{"role": "user", "content": "Tell me a story"}],
     stream=True
 )
 
@@ -143,7 +143,7 @@ for chunk in stream:
         print(chunk.choices[0].delta.content, end="")
 ```
 
-### cURL Direct
+### Direct cURL
 
 ```bash
 # Chat completion
@@ -155,62 +155,62 @@ curl -X POST http://localhost:8000/v1/chat/completions \
     "max_tokens": 100
   }'
 
-# Liste des modèles
+# List models
 curl http://localhost:8000/v1/models
 
-# Santé du service
+# Health check
 curl http://localhost:8000/health
 ```
 
 ## 🔍 API Endpoints
 
 ### OpenAI Compatible
-- `POST /v1/chat/completions` - Chat completions avec support vision
-- `GET /v1/models` - Liste des modèles disponibles
+- `POST /v1/chat/completions` - Chat completions with vision support
+- `GET /v1/models` - List available models
 
-### llama.cpp Natif
-- `POST /completion` - Completion de texte simple
-- `GET /health` - État de santé du service
-- `POST /tokenize` - Tokenisation de texte
-- `POST /detokenize` - Détokenisation
+### llama.cpp Native
+- `POST /completion` - Simple text completion
+- `GET /health` - Service health status
+- `POST /tokenize` - Text tokenization
+- `POST /detokenize` - Token detokenization
 
 ## ⚡ Performance
 
-### Spécifications Testées
+### Tested Specifications
 
-| GPU | VRAM | Modèle | Quantization | Performance |
-|-----|------|--------|--------------|-------------|
+| GPU | VRAM | Model | Quantization | Performance |
+|-----|------|-------|--------------|-------------|
 | RTX 4090 | 24GB | Qwen3-VL-8B | Q4_K_XL | ~25 tokens/s |
 | RTX 4080 | 16GB | Qwen3-VL-8B | Q4_K_XL | ~20 tokens/s |
 | RTX 4070 | 12GB | Qwen3-VL-8B | Q4_K_XL | ~15 tokens/s |
 | RTX 3080 | 10GB | Qwen3-VL-8B | Q4_K_XL | ~12 tokens/s |
 
-### Optimisations GGUF
+### GGUF Optimizations
 
-- **Mémoire**: ~5GB VRAM (vs ~15GB FP16)
-- **Vitesse**: Performance native C++
-- **Context**: Support jusqu'à 49K tokens
+- **Memory**: ~5GB VRAM (vs ~15GB FP16)
+- **Speed**: Native C++ performance
+- **Context**: Support up to 49K tokens
 
-## 🛠️ Développement
+## 🛠️ Development
 
-### Structure du Projet
+### Project Structure
 
 ```
-qwen-llama-cpp/
-├── Dockerfile               # Image Docker avec llama.cpp + CUDA
-├── start.sh                 # Script de démarrage llama-server
-├── docker-compose.yml       # Orchestration
-├── .env.example            # Variables d'environnement
-└── README.md               # Cette documentation
+thebrain/
+├── Dockerfile               # Docker image with llama.cpp + CUDA
+├── start.sh                 # llama-server startup script
+├── docker-compose.yml       # Container orchestration
+├── .env.example            # Environment variables
+└── README.md               # This documentation
 ```
 
-### Build Local
+### Local Build
 
 ```bash
-# Build de l'image
+# Build image
 docker build -t llama-qwen:latest .
 
-# Test local
+# Local test
 docker run --rm --runtime=nvidia \
   -p 8000:8000 \
   llama-qwen:latest
@@ -219,63 +219,63 @@ docker run --rm --runtime=nvidia \
 ### Monitoring
 
 ```bash
-# Logs en temps réel
+# Real-time logs
 docker logs -f llama-qwen-server
 
-# Métriques GPU
+# GPU metrics
 watch -n 1 nvidia-smi
 
-# État de santé
+# Health status
 curl http://localhost:8000/health
 ```
 
 ## 🔧 Troubleshooting
 
-### Problèmes Courants
+### Common Issues
 
-**1. Erreur CUDA Out of Memory**
+**1. CUDA Out of Memory Error**
 ```bash
-# Utiliser un GPU avec plus de VRAM
+# Use GPU with more VRAM
 export CUDA_VISIBLE_DEVICES=1
 
-# Ou réduire le contexte dans start.sh
+# Or reduce context in start.sh
 --ctx-size 32768
 ```
 
-**2. Modèle ne se télécharge pas**
+**2. Model Won't Download**
 ```bash
-# Vérifier les logs
+# Check logs
 docker logs llama-qwen-server
 
-# Vérifier l'espace disque
+# Check disk space
 df -h
 ```
 
-**3. Pas de GPU détecté**
+**3. No GPU Detected**
 ```bash
-# Vérifier le runtime NVIDIA
+# Check NVIDIA runtime
 docker run --rm --runtime=nvidia nvidia/cuda:12.8-base nvidia-smi
 
-# Installer nvidia-container-toolkit
+# Install nvidia-container-toolkit
 sudo apt install nvidia-container-toolkit
 sudo systemctl restart docker
 ```
 
-## 📖 Documentation API
+## 📖 API Documentation
 
-llama.cpp n'inclut **pas de frontend de documentation automatique** comme FastAPI (`/docs`).
+llama.cpp does **not include an automatic documentation frontend** like FastAPI's `/docs`.
 
-### Ressources disponibles
-- **Endpoints** : Testez directement avec curl/Postman
-- **Documentation officielle** : [llama.cpp server README](https://github.com/ggml-org/llama.cpp/blob/master/examples/server/README.md)
-- **OpenAI API Reference** : Compatible avec [OpenAI Chat API](https://platform.openai.com/docs/api-reference/chat)
+### Available Resources
+- **Endpoints**: Test directly with curl/Postman
+- **Official Documentation**: [llama.cpp server README](https://github.com/ggerganov/llama.cpp/blob/master/examples/server/README.md)
+- **OpenAI API Reference**: Compatible with [OpenAI Chat API](https://platform.openai.com/docs/api-reference/chat)
 
 ## 📄 License
 
-MIT License - voir LICENSE file
+MIT License - see LICENSE file
 
-## 🙏 Remerciements
+## 🙏 Acknowledgments
 
-- [llama.cpp](https://github.com/ggerganov/llama.cpp) pour le moteur d'inférence
-- [Qwen Team](https://github.com/QwenLM/Qwen2-VL) pour le modèle
-- [Unsloth](https://unsloth.ai/) pour la quantification GGUF
+- [llama.cpp](https://github.com/ggerganov/llama.cpp) for the inference engine
+- [Qwen Team](https://github.com/QwenLM/Qwen2-VL) for the model
+- [Unsloth](https://unsloth.ai/) for GGUF quantization
