@@ -1,11 +1,11 @@
 # Docker Compose pour llama.cpp avec Qwen3-VL
 services:
-  llama-server:
+  thebrain:
     build:
       context: .
       dockerfile: Dockerfile
     image: llama-qwen:latest
-    container_name: llama-qwen-server
+    container_name: thebrain
     
     # Configuration NVIDIA Runtime - OBLIGATOIRE pour GPU
     runtime: nvidia
